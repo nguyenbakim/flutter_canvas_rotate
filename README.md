@@ -1,17 +1,37 @@
-# canvas_rotate
+# canvas rotate demo
 
-A new Flutter project.
+A simple Flutter app demonstrating how to draw an image into a canvas and rotate it.
+By default the canvas.rotate method rotates around the top left corner.
+This app provides some calculation to rotate the canvas around its center. The most relevant methods are:
 
-## Getting Started
+###### Load image asset into ui.Image
+```dart
+Future<ui.Image> imageFromFilePath(String filePath) async {
+  var byteData = await rootBundle.load(filePath);
+  Uint8List lst = Uint8List.view(byteData.buffer);
+  var codec = await ui.instantiateImageCodec(lst);
+  var nextFrame = await codec.getNextFrame();
+  return nextFrame.image;
+}
+```
+###### Draw image and rotate the canvas
+```dart
+ui.Image rotatedImage({ui.Image image, double angle}) {
+  var pictureRecorder = ui.PictureRecorder();
+  Canvas canvas = Canvas(pictureRecorder);
 
-This project is a starting point for a Flutter application.
+  final double r =
+      sqrt(image.width * image.width + image.height * image.height) / 2;
+  final alpha = atan(image.height / image.width);
+  final gama = alpha + angle;
+  final shiftY = r * sin(gama);
+  final shiftX = r * cos(gama);
+  final translateX = image.width / 2 - shiftX;
+  final translateY = image.height / 2 - shiftY;
+  canvas.translate(translateX, translateY);
+  canvas.rotate(angle);
+  canvas.drawImage(image, Offset.zero, Paint());
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
-# canvas_rotate
+  return pictureRecorder.endRecording().toImage(image.width, image.height);
+}
+```
